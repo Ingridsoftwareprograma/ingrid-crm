@@ -3,11 +3,12 @@ const cors = require("cors");
 require("dotenv").config();
 
 const pool = require("./src/config/database");
-
+const clienteRoutes = require("./src/routes/clienteRoutes");
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/api/clientes", clienteRoutes);
 
 // Rota principal
 app.get("/", (req, res) => {

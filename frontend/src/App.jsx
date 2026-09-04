@@ -1,48 +1,36 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
-
-const leadsIniciais = [
-  {
-    id: 1,
-    nome: "Maria Silva",
-    telefone: "(11) 99999-1111",
-    origem: "Instagram",
-    status: "Novo lead",
-  },
-  {
-    id: 2,
-    nome: "João Santos",
-    telefone: "(11) 99999-2222",
-    origem: "WhatsApp",
-    status: "Em atendimento",
-  },
-  {
-    id: 3,
-    nome: "Fernanda Lima",
-    telefone: "(11) 99999-3333",
-    origem: "Facebook",
-    status: "Simulação enviada",
-  },
-  {
-    id: 4,
-    nome: "Carlos Souza",
-    telefone: "(11) 99999-4444",
-    origem: "Indicação",
-    status: "Visita marcada",
-  },
-];
 
 const formularioInicial = {
   nome: "",
+  email: "",
   telefone: "",
-  origem: "Instagram",
+  cpf: "",
+  empresa: "",
   status: "Novo lead",
+  observacoes: "",
 };
 
 function App() {
-  const [leads, setLeads] = useState(leadsIniciais);
+  const [leads, setLeads] = useState([]);
   const [modalAberto, setModalAberto] = useState(false);
   const [formulario, setFormulario] = useState(formularioInicial);
+  const [clienteEditando, setClienteEditando] = useState(null);
+
+  useEffect(() => {
+    async function carregarClientes() {
+      try {
+        const resposta = await fetch("http://localhost:3001/api/clientes");
+        const dados = await resposta.json();
+
+        setLeads(dados);
+      } catch (erro) {
+        console.error("Erro ao carregar clientes:", erro);
+      }
+    }
+
+    carregarClientes();
+  }, []);
 
   function atualizarCampo(evento) {
     const { name, value } = evento.target;
@@ -53,7 +41,29 @@ function App() {
     }));
   }
 
-  function cadastrarLead(evento) {
+  function abrirNovoLead() {
+    setClienteEditando(null);
+    setFormulario(formularioInicial);
+    setModalAberto(true);
+  }
+
+  function abrirEdicao(lead) {
+    setClienteEditando(lead);
+
+    setFormulario({
+      nome: lead.nome || "",
+      email: lead.email || "",
+      telefone: lead.telefone || "",
+      cpf: lead.cpf || "",
+      empresa: lead.empresa || "",
+      status: lead.status || "Novo lead",
+      observacoes: lead.observacoes || "",
+    });
+
+    setModalAberto(true);
+  }
+
+  async function salvarLead(evento) {
     evento.preventDefault();
 
     if (!formulario.nome.trim() || !formulario.telefone.trim()) {
@@ -61,22 +71,132 @@ function App() {
       return;
     }
 
-    const novoLead = {
-      id: Date.now(),
+    const dadosFormulario = {
       nome: formulario.nome.trim(),
+      email: formulario.email.trim(),
       telefone: formulario.telefone.trim(),
-      origem: formulario.origem,
+      cpf: formulario.cpf.trim(),
+      empresa: formulario.empresa.trim(),
       status: formulario.status,
+      observacoes: formulario.observacoes.trim(),
     };
 
-    setLeads((listaAtual) => [novoLead, ...listaAtual]);
-    setFormulario(formularioInicial);
-    setModalAberto(false);
+    try {
+      if (clienteEditando) {
+        const resposta = await fetch(
+          `http://localhost:3001/api/clientes/${clienteEditando.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(dadosFormulario),
+          }
+        );
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+          alert(
+            dados.erro ||
+              dados.mensagem ||
+              "Erro ao atualizar cliente."
+          );
+          return;
+        }
+
+        setLeads((listaAtual) =>
+          listaAtual.map((lead) =>
+            lead.id === clienteEditando.id
+              ? dados.cliente
+              : lead
+          )
+        );
+
+        alert("Cliente atualizado com sucesso!");
+      } else {
+        const resposta = await fetch(
+          "http://localhost:3001/api/clientes",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(dadosFormulario),
+          }
+        );
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+          alert(
+            dados.erro ||
+              dados.mensagem ||
+              "Erro ao cadastrar cliente."
+          );
+          return;
+        }
+
+        setLeads((listaAtual) => [
+          dados.cliente,
+          ...listaAtual,
+        ]);
+
+        alert("Cliente cadastrado com sucesso!");
+      }
+
+      setFormulario(formularioInicial);
+      setClienteEditando(null);
+      setModalAberto(false);
+    } catch (erro) {
+      console.error("Erro ao salvar cliente:", erro);
+      alert("Não foi possível salvar o cliente.");
+    }
+  }
+
+  async function excluirLead(id, nome) {
+    const confirmar = window.confirm(
+      `Tem certeza que deseja excluir o cliente "${nome}"?`
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
+    try {
+      const resposta = await fetch(
+        `http://localhost:3001/api/clientes/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const dados = await resposta.json();
+
+      if (!resposta.ok) {
+        alert(
+          dados.erro ||
+            dados.mensagem ||
+            "Erro ao excluir cliente."
+        );
+        return;
+      }
+
+      setLeads((listaAtual) =>
+        listaAtual.filter((lead) => lead.id !== id)
+      );
+
+      alert("Cliente excluído com sucesso!");
+    } catch (erro) {
+      console.error("Erro ao excluir cliente:", erro);
+      alert("Não foi possível excluir o cliente.");
+    }
   }
 
   function fecharModal() {
     setModalAberto(false);
     setFormulario(formularioInicial);
+    setClienteEditando(null);
   }
 
   return (
@@ -111,7 +231,7 @@ function App() {
 
           <button
             className="new-lead"
-            onClick={() => setModalAberto(true)}
+            onClick={abrirNovoLead}
           >
             + Novo lead
           </button>
@@ -129,7 +249,8 @@ function App() {
             <strong>
               {
                 leads.filter(
-                  (lead) => lead.status === "Em atendimento"
+                  (lead) =>
+                    lead.status === "Em atendimento"
                 ).length
               }
             </strong>
@@ -141,7 +262,8 @@ function App() {
             <strong>
               {
                 leads.filter(
-                  (lead) => lead.status === "Visita marcada"
+                  (lead) =>
+                    lead.status === "Visita marcada"
                 ).length
               }
             </strong>
@@ -153,7 +275,8 @@ function App() {
             <strong>
               {
                 leads.filter(
-                  (lead) => lead.status === "Venda concluída"
+                  (lead) =>
+                    lead.status === "Venda concluída"
                 ).length
               }
             </strong>
@@ -165,7 +288,9 @@ function App() {
           <div className="panel-header">
             <div>
               <h3>Leads recentes</h3>
-              <p>Últimos contatos cadastrados no sistema</p>
+              <p>
+                Últimos contatos cadastrados no sistema
+              </p>
             </div>
 
             <button>Ver todos</button>
@@ -174,17 +299,46 @@ function App() {
           <div className="table">
             <div className="table-row table-title">
               <span>Cliente</span>
+              <span>E-mail</span>
               <span>Telefone</span>
-              <span>Origem</span>
+              <span>Empresa</span>
               <span>Status</span>
+              <span>Ações</span>
             </div>
 
             {leads.map((lead) => (
-              <div className="table-row" key={lead.id}>
+              <div
+                className="table-row"
+                key={lead.id}
+              >
                 <strong>{lead.nome}</strong>
-                <span>{lead.telefone}</span>
-                <span>{lead.origem}</span>
-                <span className="status">{lead.status}</span>
+                <span>{lead.email || "-"}</span>
+                <span>{lead.telefone || "-"}</span>
+                <span>{lead.empresa || "-"}</span>
+                <span className="status">
+                  {lead.status}
+                </span>
+
+                <div className="actions">
+                  <button
+                    type="button"
+                    onClick={() => abrirEdicao(lead)}
+                  >
+                    Editar
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      excluirLead(
+                        lead.id,
+                        lead.nome
+                      )
+                    }
+                  >
+                    Excluir
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -196,8 +350,17 @@ function App() {
           <div className="modal">
             <div className="modal-header">
               <div>
-                <h3>Novo lead</h3>
-                <p>Cadastre um novo cliente no CRM.</p>
+                <h3>
+                  {clienteEditando
+                    ? "Editar lead"
+                    : "Novo lead"}
+                </h3>
+
+                <p>
+                  {clienteEditando
+                    ? "Atualize os dados do cliente."
+                    : "Cadastre um novo cliente no CRM."}
+                </p>
               </div>
 
               <button
@@ -209,7 +372,7 @@ function App() {
               </button>
             </div>
 
-            <form onSubmit={cadastrarLead}>
+            <form onSubmit={salvarLead}>
               <label>
                 Nome do cliente
                 <input
@@ -218,6 +381,17 @@ function App() {
                   value={formulario.nome}
                   onChange={atualizarCampo}
                   placeholder="Digite o nome completo"
+                />
+              </label>
+
+              <label>
+                E-mail
+                <input
+                  type="email"
+                  name="email"
+                  value={formulario.email}
+                  onChange={atualizarCampo}
+                  placeholder="cliente@email.com"
                 />
               </label>
 
@@ -233,19 +407,25 @@ function App() {
               </label>
 
               <label>
-                Origem do lead
-                <select
-                  name="origem"
-                  value={formulario.origem}
+                CPF
+                <input
+                  type="text"
+                  name="cpf"
+                  value={formulario.cpf}
                   onChange={atualizarCampo}
-                >
-                  <option>Instagram</option>
-                  <option>Facebook</option>
-                  <option>WhatsApp</option>
-                  <option>TikTok</option>
-                  <option>Indicação</option>
-                  <option>Site</option>
-                </select>
+                  placeholder="000.000.000-00"
+                />
+              </label>
+
+              <label>
+                Empresa
+                <input
+                  type="text"
+                  name="empresa"
+                  value={formulario.empresa}
+                  onChange={atualizarCampo}
+                  placeholder="Nome da empresa"
+                />
               </label>
 
               <label>
@@ -264,6 +444,17 @@ function App() {
                 </select>
               </label>
 
+              <label>
+                Observações
+                <textarea
+                  name="observacoes"
+                  value={formulario.observacoes}
+                  onChange={atualizarCampo}
+                  placeholder="Digite informações importantes sobre o cliente"
+                  rows="4"
+                />
+              </label>
+
               <div className="modal-actions">
                 <button
                   type="button"
@@ -273,8 +464,13 @@ function App() {
                   Cancelar
                 </button>
 
-                <button type="submit" className="save-button">
-                  Salvar lead
+                <button
+                  type="submit"
+                  className="save-button"
+                >
+                  {clienteEditando
+                    ? "Salvar alterações"
+                    : "Salvar lead"}
                 </button>
               </div>
             </form>
