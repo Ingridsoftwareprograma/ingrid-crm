@@ -2,32 +2,32 @@
 
 Sistema Full Stack de gerenciamento de clientes e leads, desenvolvido como projeto de portfólio para aplicar conceitos de desenvolvimento web, criação de APIs e integração com banco de dados.
 
-O **Ingrid CRM** permite cadastrar, visualizar, editar e excluir clientes, mantendo os dados armazenados em um banco PostgreSQL.
+O Ingrid CRM permite cadastrar, visualizar, editar e excluir clientes, além de acompanhar o status dos leads através de um dashboard simples e intuitivo.
+
+---
+
+## 🖥️ Preview do sistema
+
+![Dashboard do Ingrid CRM](docs/images/ingrid-crm-dashboard.png)
 
 ---
 
 ## 🚀 Funcionalidades
 
-Atualmente o sistema possui:
-
 - 👥 Cadastro de clientes e leads
-- 📋 Listagem de clientes
-- ✏️ Edição de clientes
-- 🗑️ Exclusão de clientes com confirmação
-- 📌 Controle de status dos leads
+- 📋 Listagem de clientes cadastrados
+- ✏️ Edição de informações
+- 🗑️ Exclusão de clientes
+- 📌 Gerenciamento de status dos leads
 - 📊 Dashboard com indicadores
-- 📞 Cadastro de telefone
-- 📧 Cadastro de e-mail
-- 🪪 Cadastro de CPF
-- 🏢 Cadastro de empresa
-- 📝 Observações sobre o cliente
-- 💾 Persistência dos dados no PostgreSQL
-- 🔄 Integração Front-end e Back-end através de API REST
-- ⚠️ Tratamento de erros da API
+- 📈 Acompanhamento de leads em atendimento
+- 🏠 Interface voltada para gestão imobiliária
+- 📱 Layout responsivo
+- 🔗 Integração entre Front-end, API e banco de dados
 
 ---
 
-## 🛠️ Tecnologias
+## 🛠️ Tecnologias utilizadas
 
 ### Front-end
 
@@ -36,21 +36,16 @@ Atualmente o sistema possui:
 - Vite
 - HTML5
 - CSS3
-- Fetch API
 
 ### Back-end
 
 - Node.js
 - Express
 - API REST
-- CORS
-- dotenv
-- Nodemon
 
 ### Banco de Dados
 
 - PostgreSQL
-- node-postgres (`pg`)
 
 ### Ferramentas
 
@@ -61,7 +56,30 @@ Atualmente o sistema possui:
 
 ---
 
-## 🏗️ Estrutura do Projeto
+## 🔄 Operações CRUD
+
+O sistema possui as principais operações de gerenciamento de clientes:
+
+- **Create** — Cadastro de novos clientes
+- **Read** — Listagem dos clientes cadastrados
+- **Update** — Edição dos dados de um cliente
+- **Delete** — Exclusão de clientes
+
+---
+
+## 📊 Dashboard
+
+O dashboard apresenta informações importantes para acompanhamento comercial, como:
+
+- Total de leads cadastrados
+- Leads em atendimento
+- Visitas agendadas
+- Vendas no mês
+- Lista de leads recentes
+
+---
+
+## 🏗️ Estrutura do projeto
 
 ```text
 IngridCRM/
@@ -69,24 +87,23 @@ IngridCRM/
 ├── backend/
 │   ├── src/
 │   │   ├── config/
-│   │   │   └── database.js
 │   │   ├── controllers/
-│   │   │   └── clienteController.js
-│   │   └── routes/
-│   │       └── clienteRoutes.js
-│   │
-│   ├── server.js
+│   │   ├── middleware/
+│   │   ├── routes/
+│   │   └── services/
+│   ├── .env.example
 │   ├── package.json
-│   └── .env.example
+│   └── server.js
 │
 ├── database/
+│
 ├── docs/
+│   └── images/
+│       └── ingrid-crm-dashboard.png
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   └── main.jsx
+│   ├── public/
 │   └── package.json
 │
 ├── .gitignore
@@ -95,43 +112,21 @@ IngridCRM/
 
 ---
 
-## 🔗 API
-
-A aplicação utiliza uma API REST para realizar as operações CRUD dos clientes.
-
-| Método | Endpoint | Função |
-|---|---|---|
-| GET | `/api/clientes` | Listar clientes |
-| POST | `/api/clientes` | Cadastrar cliente |
-| PUT | `/api/clientes/:id` | Editar cliente |
-| DELETE | `/api/clientes/:id` | Excluir cliente |
-
----
-
 ## ⚙️ Como executar o projeto
 
-### Pré-requisitos
-
-Para executar o projeto localmente é necessário ter:
-
-- Node.js
-- npm
-- PostgreSQL
-- Git
-
-### 1. Clone o projeto
+### 1. Clone o repositório
 
 ```bash
-git clone https://github.com/Ingridsoftwareprograma/ingrid-crm.git
+git clone <URL-DO-REPOSITORIO>
 ```
 
-Depois entre na pasta:
+Entre na pasta do projeto:
 
 ```bash
-cd ingrid-crm
+cd IngridCRM
 ```
 
-### 2. Back-end
+### 2. Configure o Back-end
 
 Entre na pasta:
 
@@ -145,30 +140,23 @@ Instale as dependências:
 npm install
 ```
 
-Crie um arquivo `.env` baseado no `.env.example`:
+Crie um arquivo `.env` baseado no arquivo `.env.example` e configure os dados de acesso ao PostgreSQL.
 
-```env
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=sua_senha
-DB_NAME=ingrid_crm
-PORT=3001
-```
-
-> Nunca publique seu arquivo `.env` ou credenciais reais.
-
-Inicie o servidor:
+Depois execute:
 
 ```bash
 npm run dev
 ```
 
-A API será executada localmente na porta `3001`.
+O servidor será iniciado, por padrão, na porta:
 
-### 3. Front-end
+```text
+http://localhost:3001
+```
 
-Em outro terminal, acesse:
+### 3. Execute o Front-end
+
+Abra outro terminal e entre na pasta do front-end:
 
 ```bash
 cd frontend
@@ -186,63 +174,42 @@ Execute:
 npm run dev
 ```
 
-O Vite mostrará no terminal o endereço local para acessar a aplicação.
+O Vite exibirá no terminal o endereço para acessar a aplicação no navegador.
 
 ---
 
-## 🗄️ Banco de Dados
+## 🔐 Segurança
 
-O sistema utiliza PostgreSQL para persistência dos dados.
+As credenciais do banco de dados não são armazenadas no repositório.
 
-A tabela de clientes armazena informações como:
-
-- Nome
-- E-mail
-- Telefone
-- CPF
-- Empresa
-- Status
-- Observações
-- Data de criação
-- Data de atualização
+O arquivo `.env` é ignorado pelo Git e o projeto disponibiliza apenas um `.env.example` como modelo de configuração.
 
 ---
 
-## 📚 Conceitos aplicados
+## 🎯 Objetivo do projeto
 
-Durante o desenvolvimento foram aplicados conceitos de:
+Este projeto foi desenvolvido com o objetivo de praticar e demonstrar conhecimentos em desenvolvimento Full Stack, incluindo:
 
-- Desenvolvimento Full Stack
-- Componentes React
-- Hooks `useState` e `useEffect`
-- Consumo de API com Fetch
-- API REST
-- CRUD
-- Rotas com Express
-- Controllers
-- SQL
-- PostgreSQL
-- Variáveis de ambiente
-- Tratamento de erros
-- Git e GitHub
-
----
-
-## 🔮 Próximas melhorias
-
-- 🔐 Login e autenticação
-- 🔎 Pesquisa e filtros
-- 💼 Funil de vendas
-- 📅 Agenda de atendimentos e visitas
-- 🏢 Cadastro de empreendimentos
-- 📈 Relatórios
-- 📱 Melhorias de responsividade
-- 🌐 Deploy da aplicação
+- Desenvolvimento de interfaces com React
+- Criação de APIs REST com Node.js e Express
+- Integração com PostgreSQL
+- Operações CRUD
+- Consumo de API no Front-end
+- Versionamento com Git e GitHub
+- Organização de um projeto Full Stack
 
 ---
 
 ## 👩‍💻 Desenvolvedora
 
-**Ingrid de Souza**
+**Ingrid Souza**
 
-Projeto desenvolvido para estudo e portfólio na área de desenvolvimento de software.
+Estudante de Tecnologia da Informação, desenvolvendo projetos para aprimorar conhecimentos em desenvolvimento de software, aplicações web e banco de dados.
+
+---
+
+## 📌 Status do projeto
+
+🚧 **Em desenvolvimento**
+
+O CRUD de clientes já está funcional. Novas funcionalidades poderão ser adicionadas futuramente, como autenticação de usuários, pesquisa, filtros, agenda, funil de vendas e gerenciamento de empreendimentos.
